@@ -9,7 +9,6 @@ class Connection(object):
         self.polarity = polarity
         
     def __repr__(self):
-        return '%s%s' % (self.shape, self.polarity)
         return 'Connection(%s, %s)' % (self.shape, self.polarity)
     
     def __eq__(self, other):
@@ -49,18 +48,6 @@ class Piece (object):
                 return True
         return False
         
-def print_board(board):
-    fill = '|   |   |   |'
-    ch = lambda c:c.shape[0]
-    prv = lambda r:'+-' + '-+-'.join((ch(p.n) if p else '-') for p in r) + '-+'
-    prh = lambda r: '   '.join(ch(p.w) if p else '|' for p in r) + '   ' + (ch(r[-1].e) if r[-1] else '|')
-    for i in xrange(0, 7, 3):
-        print prv(board[i:i+3])
-        print fill
-        print prh(board[i:i+3])
-        print fill
-    print '+-' + '-+-'.join((ch(p.s) if p else '-') for p in board[-3:]) + '-+'
-
 def valid_pieces(board, open_list, pos):
     '''Yield tuple of (piece, rotation_that_fits) for each piece in the open_list that fits'''
     top_neighbor = board[pos - 3] if pos >= 3 else None
@@ -122,6 +109,18 @@ if __name__ == '__main__':
         Piece(co,hi,si,ho),
         Piece(co,ci,di,ho),
     ]
+    
+    def print_board(board):
+        fill = '|   |   |   |'
+        ch = lambda c:c.shape[0]
+        prv = lambda r:'+-' + '-+-'.join((ch(p.n) if p else '-') for p in r) + '-+'
+        prh = lambda r: '   '.join(ch(p.w) if p else '|' for p in r) + '   ' + (ch(r[-1].e) if r[-1] else '|')
+        for i in xrange(0, 7, 3):
+            print prv(board[i:i+3])
+            print fill
+            print prh(board[i:i+3])
+            print fill
+        print '+-' + '-+-'.join((ch(p.s) if p else '-') for p in board[-3:]) + '-+'
     
    
     solution = find_solution(pieces)
