@@ -9,7 +9,11 @@ class Connection(object):
         self.polarity = polarity
         
     def __repr__(self):
+        return '%s%s' % (self.shape, self.polarity)
         return 'Connection(%s, %s)' % (self.shape, self.polarity)
+    
+    def __eq__(self, other):
+        return self.shape == other.shape and self.polarity == other.polarity
     
     def connects(self, other):
         return self.shape == other.shape and self.polarity != other.polarity
@@ -23,10 +27,13 @@ class Piece (object):
         
     def __repr__(self):
         return 'Piece(n=%s, e=%s, s=%s, w=%s)' % (self.n, self.e, self.s, self.w)
+    
+    def __eq__(self, other):
+        return (self.n, self.e, self.w, self.s) == (other.n, other.e, other.w, other.s)
         
     def rotated(self):
         ''' Return a new piece that has the same connections as the current piece, but rotated 90deg counterclockwise'''
-        return Piece(self.e, self.w, self.s, self.n)
+        return Piece(self.e, self.s, self.w, self.n)
     
     def all_rotations(self):
         '''Return an iterator over all four rotations of this piece'''
@@ -35,18 +42,24 @@ class Piece (object):
         for _ in xrange(3):
             piece = piece.rotated()
             yield piece
+            
+    def is_rotation_of(self, other):
+        for rotation in self.all_rotations():
+            if rotation == other:
+                return True
+        return False
         
 def print_board(board):
-    fill = '|     |     |'
-    ch = lambda c:'%s%s' % (c.shape[0], c.polarity)
-    prv = lambda r:'+-' + '-+-'.join((ch(p.n) if p else '--') for p in r) + '-+'
-    prh = lambda r: '   '.join(ch(p.w) if p else '| ' for p in r) + (ch(r[-1]) if r[-1] else ' |')
+    fill = '|   |   |   |'
+    ch = lambda c:c.shape[0]
+    prv = lambda r:'+-' + '-+-'.join((ch(p.n) if p else '-') for p in r) + '-+'
+    prh = lambda r: '   '.join(ch(p.w) if p else '|' for p in r) + '   ' + (ch(r[-1].e) if r[-1] else '|')
     for i in xrange(0, 7, 3):
-        print prn(board[i:i+3])
+        print prv(board[i:i+3])
         print fill
         print prh(board[i:i+3])
         print fill
-    print '+-' + '-+-'.join((ch(p.s) if p else '--') for p in r) + '-+'
+    print '+-' + '-+-'.join((ch(p.s) if p else '-') for p in board[-3:]) + '-+'
 
 def valid_pieces(board, open_list, pos):
     '''Yield tuple of (piece, rotation_that_fits) for each piece in the open_list that fits'''
@@ -64,26 +77,22 @@ def valid_pieces(board, open_list, pos):
             break
     
 def search(board, open_list, pos):
-    print board
-    #print open_list
     if pos > 8:
         # Solution found.
         return board
     
     for piece, rotation in valid_pieces(board, open_list, pos):
+        print piece, rotation
         next_board = board[:]
         next_board[pos] = rotation
         next_open_list = open_list[:]
         next_open_list.remove(piece)
         
-        if not next_open_list:
-            # No solution
-            return None
+        print next_board
         
         result = search(next_board, next_open_list, pos + 1)
         if result is not None:
             return result
-        
     return None
 
 def find_solution(pieces):
@@ -102,30 +111,19 @@ if __name__ == '__main__':
     do = Connection('diamond', Connection.POSITIVE)
     co = Connection('club',    Connection.POSITIVE)
     
-    #pieces = [
-    #    Piece(ho,ci,si,so),
-    #    Piece(ho,ci,ci,do),
-    #    Piece(so,ci,hi,so),
-    #    Piece(so,di,hi,do),
-    #    Piece(so,hi,si,do),
-    #    Piece(ho,hi,di,do),
-    #    Piece(do,di,ci,co),
-    #    Piece(co,hi,si,ho),
-    #    Piece(co,ci,di,ho),
-    #]
-    
     pieces = [
-        Piece(so,hi,ci,so),
-        Piece(do,di,hi,ho),
-        Piece(do,si,hi,so),
-        Piece(co,ci,di,do),
-        Piece(ho,si,hi,co),
-        Piece(so,si,ci,ho),
-        Piece(do,ci,ci,ho),
-        Piece(ho,di,ci,co),
-        Piece(do,hi,di,so),
+        Piece(ho,ci,si,so),
+        Piece(ho,ci,ci,do),
+        Piece(so,ci,hi,so),
+        Piece(so,di,hi,do),
+        Piece(so,hi,si,do),
+        Piece(ho,hi,di,do),
+        Piece(do,di,ci,co),
+        Piece(co,hi,si,ho),
+        Piece(co,ci,di,ho),
     ]
     
+   
     solution = find_solution(pieces)
     if solution:
         print_board(solution)
