@@ -69,13 +69,10 @@ def search(board, open_list, pos):
         return board
     
     for piece, rotation in valid_pieces(board, open_list, pos):
-        print piece, rotation
         next_board = board[:]
         next_board[pos] = rotation
         next_open_list = open_list[:]
         next_open_list.remove(piece)
-        
-        print next_board
         
         result = search(next_board, next_open_list, pos + 1)
         if result is not None:
